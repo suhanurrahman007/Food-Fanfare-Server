@@ -32,31 +32,62 @@ async function run() {
 
         const productCollection = client.db("productDB").collection("product")
 
-        app.get("/product", async (req, res)=>{
+        app.get("/product", async (req, res) => {
             const result = await productCollection.find().toArray()
             res.send(result)
         })
 
         app.get("/product/:id", async (req, res) => {
             const id = req.params.id
-            const query = {_id: new ObjectId(id)}
+            const query = {
+                _id: new ObjectId(id)
+            }
             const result = await productCollection.findOne(query)
             res.send(result)
         })
 
-        app.post('/product', async (req, res) =>{
+        app.post('/product', async (req, res) => {
             const product = req.body;
             const result = await productCollection.insertOne(product)
             res.send(result)
         })
 
-        app.delete("/product/:id", async (req, res) =>{
+        app.put("/product/:id", async (req, res) => {
+            const id = req.params.id
+            const product = req.body
+            const query = {
+                _id: new ObjectId(id)
+            }
+            const options = {
+                upsert: true
+            }
+            const updateProduct = {
+                $set : {
+                    name: product.name,
+                    brandName: product.brandName,
+                    productType: product.productType,
+                    price: product.price,
+                    rating: product.rating,
+                    productImageURL: product.productImageURL,
+                    detailedDescription: product.detailedDescription,
+
+                }
+            }
+
+            const result = await productCollection.updateOne(query, updateProduct, options)
+            res.send(result)
+        })
+
+        app.delete("/product/:id", async (req, res) => {
             const id = req.params.id
             // const product = req.body
-            const query = {_id: new ObjectId(id)}
+            const query = {
+                _id: new ObjectId(id)
+            }
             const result = await productCollection.deleteOne(query)
             res.send(result)
         })
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({
@@ -71,10 +102,10 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
     res.send("Server is running.....")
 })
 
-app.listen(port, ()=>{
+app.listen(port, () => {
     console.log(`Server running Port is ${port}`);
 })
